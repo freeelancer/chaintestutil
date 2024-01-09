@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"maps"
-
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -84,7 +82,7 @@ func (i *Initializer) Auth(paramKeeper paramskeeper.Keeper, maccPerms map[string
 	i.StateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, i.DB)
 	paramKeeper.Subspace(authtypes.ModuleName)
 
-	maps.Copy(moduleAccountPerms, maccPerms)
+	copyMap(moduleAccountPerms, maccPerms)
 
 	return authkeeper.NewAccountKeeper(
 		i.Codec,
@@ -101,7 +99,7 @@ func (i *Initializer) Bank(paramKeeper paramskeeper.Keeper, authKeeper authkeepe
 	i.StateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, i.DB)
 	paramKeeper.Subspace(banktypes.ModuleName)
 
-	maps.Copy(moduleAccountPerms, maccPerms)
+	copyMap(moduleAccountPerms, maccPerms)
 	modAccAddrs := ModuleAccountAddrs(moduleAccountPerms)
 
 	return bankkeeper.NewBaseKeeper(
@@ -188,4 +186,15 @@ func (i *Initializer) FeeGrant(
 
 func (i *Initializer) LoadLatest() error {
 	return i.StateStore.LoadLatestVersion()
+}
+
+func copyMap(dst map[string][]string, src map[string][]string) {
+	for key, values := range src {
+		// Copy the slice of values to avoid modifying the original map
+		copiedValues := make([]string, len(values))
+		copy(copiedValues, values)
+
+		// Assign the copied values to the destination map
+		dst[key] = copiedValues
+	}
 }
